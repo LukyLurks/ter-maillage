@@ -169,7 +169,7 @@ contourCercle = genererContourCercle(resolutionQuadrant)
 # Nombre de points interieurs au cercle
 nbPtsDansCercle = 25
 interieurCercle = genererInterieurCercle(nbPtsDansCercle)
-interieurC2 = genererContourCercle(nbPtsDansCercle)
+interieurC2 = genererInterieurCercle(nbPtsDansCercle)
 
 # Tous les points regroupes dans un tableau
 pointsCercle = np.concatenate((contourCercle, interieurCercle), axis=0)
@@ -187,6 +187,5 @@ print qualiteMaillageTri(maillageTriCercle.simplices, pointsCercle)
 # VISUEL
 ###############################################################################
 plt.triplot(pointsCercle[:,0], pointsCercle[:,1], maillageTriCercle.simplices.copy())
-plt.plot(contourCercle[:,0], contourCercle[:,1], 'o')
-plt.plot(interieurCercle[:,0], interieurCercle[:,1], 'ro')
+plt.plot(pointsCercle[:,0], pointsCercle[:,1], 'o')
 plt.show()
