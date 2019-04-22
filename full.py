@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+
+## Polygone convexe
 ###############################################################################
 # IMPORTS
 ###############################################################################
@@ -73,6 +75,13 @@ def genererCentrePoly(nbPointCentre, pointsContour):
 
   return ptsCentre
 
+# Génère un polygone avec tous les points
+def genererPoly(nbPointTour, nbPointCentre, sommets):
+    contourPoly = genererContourPoly(nbPointTour, sommets)
+    centrePoly = genererCentrePoly(nbPointCentre, contourPoly)
+    pointsPoly = np.concatenate((contourPoly, centrePoly), axis=0)
+    return pointsPoly
+
 def afficherMaillage(points):
 	#Code pour le afficherMaillage
 	tri = Delaunay(points)
@@ -80,13 +89,14 @@ def afficherMaillage(points):
 	plt.plot(points[:,0], points[:,1], 'o')
 	plt.show()
 
+"""
 ###############################################################################
 # Exemple de tracé
 ###############################################################################
 
 ## Paramètres ##
-#points est initialisé avec les sommets de la figure
-points = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
+#sommetsPoly est initialisé avec les sommets de la figure
+sommetsPoly = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
 
 #nombre de points générés sur chaque segment 
 nbPointTour = 5
@@ -95,17 +105,13 @@ nbPointTour = 5
 nbPointCentre = 20
 
 ## Exécution ##
-contourPoly = genererContourPoly(nbPointTour,points)
-centrePoly = genererCentrePoly(nbPointCentre, contourPoly)
-pointsPoly = np.concatenate((contourPoly, centrePoly), axis=0)
+pointsPoly = genererPoly(nbPointTour, nbPointCentre, sommetsPoly)
 afficherMaillage(pointsPoly)
+"""
 
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-
+## Cercle
+###############################################################################
+# IMPORTS
 ###############################################################################
 
 from math import pi, cos, sin, acos   # générer les points du cercle
@@ -178,6 +184,14 @@ def genererInterieurCercle(nbPointsInterieurs):
 
   return ptsInterieurs
 
+# Génere le cercle avec tous ses points
+def genererCercle(resolutionQuadrant, nbPointsInterieurs):
+    contourCercle = genererContourCercle(resolutionQuadrant)
+    centreCercle = genererInterieurCercle(nbPointsInterieurs)
+    pointsCercle = np.concatenate((contourCercle, centreCercle), axis=0)
+    return pointsCercle
+    
+"""
 ###############################################################################
 # Exemple de tracé
 ###############################################################################
@@ -189,17 +203,11 @@ resolutionQuadrant = 5
 nbPtsDansCercle = 25
 
 ## Exécution ##
-contourCercle = genererContourCercle(resolutionQuadrant)
-centreCercle = genererInterieurCercle(nbPtsDansCercle)
-pointsCercle = np.concatenate((contourCercle, centreCercle), axis=0)
+pointsCercle = genererCercle(resolutionQuadrant, nbPtsDansCercle)
 afficherMaillage(pointsCercle)
+"""
 
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-
+## Qualité
 ###############################################################################
 # METHODES
 ###############################################################################
@@ -236,7 +244,7 @@ def qualiteTriangle(a, b, c):
   return ecartMax / (pi/2)
 
 # Qualité d'un ensemble de triangles 
-def qualiteMaillageTri(triangles, points):
+def qualiteMaillage(triangles, points):
   """
   Entrée: 
     - triangles de la forme Delaunay(points).simplices
@@ -252,6 +260,7 @@ def qualiteMaillageTri(triangles, points):
 
   return sommeQualite / len(triangles)
 
+"""
 ###############################################################################
 # TESTS SUR LES EXEMPLES
 ###############################################################################
@@ -261,13 +270,289 @@ maillageExemplePoly = Delaunay(pointsPoly)
 maillageExempleCercle = Delaunay(pointsCercle)
 
 print "Qualite du maillage pour le polygone : "
-print qualiteMaillageTri(maillageExemplePoly.simplices, pointsPoly)
+print qualiteMaillage(maillageExemplePoly.simplices, pointsPoly)
 
 print "Qualité du maillage pour le cercle : "
-print qualiteMaillageTri(maillageExempleCercle.simplices, pointsCercle)
+print qualiteMaillage(maillageExempleCercle.simplices, pointsCercle)
+"""
 
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-################################################################################
+## Croisement
+# Croisement gauche-droite
+def croisemtGD(pointsParent1, pointsParent2):
+  """
+  Entrée: 2 ensembles de points correspondant à 2 maillages
+  Sortie: 1 ensemble de points correspondant à un maillage
+  
+  L'enfant aura le même nombre de points que les parents.
+
+  - on prend le point le plus a gauche (x min) et le plus a droite (x max),
+  on calcule le barycentre (milieu)
+  - on prend tous les points de gauche pour parent1, les autres pour
+  parent2
+  - on fait l'union, et on ajoute/supprime des points random pour conserver 
+  le meme nombre que les parents
+  """
+
+  # Calcul de la frontière
+  frontiere = (np.amin(pointsParent1, axis=0) + np.amax(pointsParent1, axis=0)) / 2 
+  abscisseFrontiere = frontiere[0]
+
+  # On initialise l'enfant à un parent pour être sûr 
+  # d'avoir le bon nombre de points
+  pointsEnfant = pointsParent1
+  i = 0
+
+  for point in pointsParent1:
+    if point[0] <= abscisseFrontiere and i < len(pointsEnfant):
+      pointsEnfant[i] = point
+      i = i + 1
+
+  for point in pointsParent2:
+    if point[0] > abscisseFrontiere and i < len(pointsEnfant):
+      pointsEnfant[i] = point
+      i = i + 1
+  
+  return pointsEnfant
+
+"""
+###############################################################################
+# TESTS SUR LES EXEMPLES
+###############################################################################
+
+## Polygones convexes ##
+# On génère 2 parents
+#sommetsCarre = np.array([[-10.0, -10.0], [-10.0, 10.0],[10.0,10.0],[10.0, -10.0]])
+sommetsCarre = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
+
+pointsCarre1 = genererPoly(nbPointTour, nbPointCentre, sommetsCarre)
+maillageCarre1 = Delaunay(pointsCarre1)
+
+pointsCarre2 = genererPoly(nbPointTour, nbPointCentre, sommetsCarre)
+maillageCarre2 = Delaunay(pointsCarre2)
+
+# On calcule leur qualité
+print "Qualité parent carré 1 : ",qualiteMaillage(maillageCarre1.simplices,pointsCarre1)
+print "Qualité parent carré 2 : ",qualiteMaillage(maillageCarre2.simplices,pointsCarre2)
+
+# On les croise et on observe l'enfant
+enfantCarre = croisemtGD(pointsCarre1, pointsCarre2)
+maillageEnfantCarre = Delaunay(enfantCarre)
+print "Qualité enfant carré : ",qualiteMaillage(maillageEnfantCarre.simplices,enfantCarre)
+afficherMaillage(enfantCarre)
+
+## Cercles ##
+# On génère les 2 parents
+pointsCerc1 = genererCercle(resolutionQuadrant, nbPtsDansCercle)
+maillageCerc1 = Delaunay(pointsCerc1)
+
+pointsCerc2 = genererCercle(resolutionQuadrant, nbPtsDansCercle)
+maillageCerc2 = Delaunay(pointsCerc2)
+
+
+# On calcule leur qualité
+print "Qualité parent cercle 1 : ",qualiteMaillage(maillageCerc1.simplices,pointsCerc1)
+print "Qualité parent cercle 2 : ",qualiteMaillage(maillageCerc2.simplices,pointsCerc2)
+
+# On les croise et on observe l'enfant
+enfantCerc = croisemtGD(pointsCerc1, pointsCerc2)
+maillageEnfantCerc = Delaunay(enfantCerc)
+print "Qualité enfant cercle : ",qualiteMaillage(maillageEnfantCerc.simplices,enfantCerc)
+afficherMaillage(enfantCerc)
+"""
+
+## Classe et conservation des données
+###############################################################################
+# CLASSE
+###############################################################################
+
+## Définition ##
+class Maillage(object):
+    def __init__(self, points):
+        self.points = points
+        self.tri = Delaunay(points).simplices
+        self.qualite = qualiteMaillage(self.tri, points)
+        
+    ## Méthodes ##
+    # Ecrit les points du maillage dans un fichier .txt
+    def ecrireFichierPoints(self, fichier):
+	w=0
+	while w<len(self.points):
+		temp0 = str(self.points[w][0])
+		temp1 = str(self.points[w][1])
+		point = "["+temp0+","+temp1+"]\n"
+		fichier.write(point)
+		w=w+1
+        
+    # Ecrit la qualité du maillage dans un fichier .txt
+    def ecrireFichierQualite(self, fichier):
+        fichier.write(str(self.qualite)+'\n')
+        
+###############################################################################
+# METHODES
+###############################################################################
+
+    
+# Lit un fichier .txt contenant des points et les met dans un np.array
+# On utilisera cette fonction pour exploiter les résultats
+def lireFichierPoints(filename, taillePop):
+	points = np.array([[0.0, 0.0]])
+	fichier = open(filename, "r")
+	for ligne in fichier:
+		temp0 = ""
+		temp1 = ""
+		indice = 0
+		for c in ligne:
+			if (indice == 0 and (c == "-" or c == "." or c.isdigit() == True )):
+				temp0 = temp0+c
+			elif c == ",":
+				indice = 1
+			elif (indice == 1 and (c == "-" or c == "." or c.isdigit() == True)):
+				temp1 = temp1+c
+		points = np.concatenate((points,[[float(temp0),float(temp1)]]), axis=0)
+	points = np.delete(points,0,0)
+	fichier.close()
+	return np.split(points,taillePop,axis=0)
+
+def lireFichierQualite(filename):
+    fichier = open(filename, "r")
+    qualites = [q for q in fichier]
+    fichier.close()
+    return qualites
+
+"""
+###############################################################################
+# EXEMPLE
+###############################################################################
+
+
+taillePopulation = 10
+
+# On génère une population de maillages dans une liste
+exemplePopulation = [
+    Maillage(points=genererCercle(resolutionQuadrant, nbPtsDansCercle)) 
+    for i in range(taillePopulation)
+]
+
+# On la trie par ordre décroissant de qualité (1er élément: meilleur)
+exemplePopulation.sort(key=lambda maillage: maillage.qualite, reverse=True)
+
+# On écrit les résultats dans un fichier
+testPoints = open("testPoints.txt", "w")
+testQualite = open("testQualite.txt", "w")
+for maillage in exemplePopulation:
+    maillage.ecrireFichierPoints(testPoints)
+    maillage.ecrireFichierQualite(testQualite)
+testPoints.close()
+testQualite.close()
+
+# On peut lire ces résultats
+variablePoints = lireFichierPoints("testPoints.txt", taillePopulation)
+testQualite = lireFichierQualite("testQualite.txt")
+
+# Points et qualité du 3e maillage, par exemple
+print variablePoints[2]
+print testQualite[2]
+"""
+
+## Algo complet
+###############################################################################
+# PARAMETRES
+###############################################################################
+
+## Algorithme ##
+# Nombre de générations
+nbGen = 500
+# Taille de la population par figure
+taillePop = 10
+
+## Figures ##
+# Polygone
+ptsParCote = 8
+ptsDansPoly = 30
+sommets = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
+ptsParPoly = ptsParCote * len(sommets) + ptsDansPoly
+
+# Cercle
+resQuart = 10
+ptsDansCercle = 50
+ptsParCercle = 4 * resQuart + ptsDansCercle
+
+
+###############################################################################
+# ALGORITHME EVOLUTIONNAIRE
+###############################################################################
+
+# On initialise les populations
+popPoly = [
+    Maillage(points=genererPoly(ptsParCote, ptsDansPoly, sommets)) 
+    for i in range(taillePop)
+]
+
+popCercle = [
+    Maillage(points=genererCercle(resQuart, ptsDansCercle)) 
+    for i in range(taillePop)
+]
+
+# Début algo
+for g in range(nbGen):
+    # Trie la population
+    popPoly.sort(key=lambda x: x.qualite, reverse=True) #bug après 1ere iteration
+    popCercle.sort(key=lambda x: x.qualite, reverse=True)
+    # Garde les meilleurs
+    popPoly = popPoly[:taillePop]
+    popCercle = popCercle[:taillePop]
+    
+    # On aura 1 fichier par génération, donc on formate bien les noms 
+    nomPtsPoly = "ptsPoly_top" + str(taillePop) + "_gen" + str(g) + ".txt"
+    nomQualPoly = "qualPoly_top" + str(taillePop) + "_gen" + str(g) + ".txt"
+    nomPtsCercle = "ptsCercle_top" + str(taillePop) + "_gen" + str(g) + ".txt"
+    nomQualCercle = "qualCercle_top" + str(taillePop) + "_gen" + str(g) + ".txt"
+    # Ouvre les fichiers
+    ptsPoly = open(nomPtsPoly, "w")
+    qualPoly = open(nomQualPoly, "w")
+    ptsCercle = open(nomPtsCercle, "w")
+    qualCercle = open(nomQualCercle, "w")
+    # Ecrit dans les fichiers
+    for poly in popPoly:
+        poly.ecrireFichierPoints(ptsPoly)
+        poly.ecrireFichierQualite(qualPoly)
+    for cercle in popCercle:
+        cercle.ecrireFichierPoints(ptsCercle)
+        cercle.ecrireFichierQualite(qualCercle)
+    # Ferme les fichiers
+    ptsPoly.close()
+    qualPoly.close()
+    ptsCercle.close()
+    qualCercle.close()
+        
+    # Croise et ajoute les enfants à la population
+    for i in range(0, taillePop, 2):
+        tempPtsPoly = croisemtGD(popPoly[i].points, popPoly[i+1].points)
+        tempPoly = Maillage(points=tempPtsPoly)
+        popPoly.append(tempPoly)
+        tempPtsCercle = croisemtGD(popCercle[i].points, popCercle[i+1].points)
+        tempCercle = Maillage(points=tempPtsCercle)
+        popCercle.append(tempCercle)
+        
+# Affiche le meilleur maillage de la 1ere et la dernière génération
+
+# 1ere gen
+ptsPolyOld = lireFichierPoints("ptsPoly_top10_gen0.txt", taillePop)
+qPolyOld = lireFichierQualite("qualPoly_top10_gen0.txt")
+ptsCercleOld = lireFichierPoints("ptsCercle_top10_gen0.txt", taillePop)
+qCercleOld = lireFichierQualite("qualCercle_top10_gen0.txt")
+# dernière gen
+ptsPolyNew = lireFichierPoints("ptsPoly_top10_gen99.txt", taillePop)
+qPolyNew = lireFichierQualite("qualPoly_top10_gen99.txt")
+ptsCercleNew = lireFichierPoints("ptsCercle_top10_gen99.txt", taillePop)
+qCercleNew = lireFichierQualite("qualCercle_top10_gen99.txt")
+
+afficherMaillage(ptsPolyOld[0])
+print "Qualité meilleur poly gen 0 : ",qPolyOld[0]
+afficherMaillage(ptsCercleOld[0])
+print "Qualité meilleur cercle gen 0 : ",qCercleOld[0]
+
+afficherMaillage(ptsPolyNew[0])
+print "Qualité meilleur poly gen 99 : ",qPolyNew[0]
+afficherMaillage(ptsCercleNew[0])
+print "Qualité meilleur cercle gen 99 : ",qCercleNew[0]

@@ -107,3 +107,6 @@ venv.bak/
 ## Added by me
 .vscode*
 *.pyc
+pts*.txt
+qual*.txt
+test*.txt
