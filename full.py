@@ -253,12 +253,24 @@ def qualiteMaillage(triangles, points):
 
   Calcule la qualité de tous les triangles et en fait la moyenne arithmétique
   """
+
   sommeQualite = 0.0
+  minQual = 1.0
 
   for triangle in triangles:
-    sommeQualite += qualiteTriangle(points[triangle[0]], points[triangle[1]], points[triangle[2]])
+    qualTri = qualiteTriangle(points[triangle[0]], points[triangle[1]], points[triangle[2]])
+    sommeQualite += qualTri
+    minQual = min(minQual, qualTri)
 
-  return sommeQualite / len(triangles)
+  qualGlobale = sommeQualite / len(triangles)
+  return (qualGlobale + minQual) / 2
+  """
+  minQual = 1.0
+  for triangle in triangles:
+    minQual = min(qualiteTriangle(points[triangle[0]], points[triangle[1]], points[triangle[2]]), minQual)
+
+  return minQual
+  """
 
 """
 ###############################################################################
@@ -461,20 +473,21 @@ print testQualite[2]
 
 ## Algorithme ##
 # Nombre de générations
-nbGen = 500
+nbGen = 50
 # Taille de la population par figure
 taillePop = 10
 
 ## Figures ##
 # Polygone
-ptsParCote = 8
-ptsDansPoly = 30
+ptsParCote = 3
+ptsDansPoly = 10
 sommets = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
+#sommets = np.array([[-15.0, -10.0], [-15.0, 10.0],[15.0,10.0],[15.0, -10.0]])
 ptsParPoly = ptsParCote * len(sommets) + ptsDansPoly
 
 # Cercle
-resQuart = 10
-ptsDansCercle = 50
+resQuart = 4
+ptsDansCercle = 10
 ptsParCercle = 4 * resQuart + ptsDansCercle
 
 
@@ -542,10 +555,10 @@ qPolyOld = lireFichierQualite("qualPoly_top10_gen0.txt")
 ptsCercleOld = lireFichierPoints("ptsCercle_top10_gen0.txt", taillePop)
 qCercleOld = lireFichierQualite("qualCercle_top10_gen0.txt")
 # dernière gen
-ptsPolyNew = lireFichierPoints("ptsPoly_top10_gen99.txt", taillePop)
-qPolyNew = lireFichierQualite("qualPoly_top10_gen99.txt")
-ptsCercleNew = lireFichierPoints("ptsCercle_top10_gen99.txt", taillePop)
-qCercleNew = lireFichierQualite("qualCercle_top10_gen99.txt")
+ptsPolyNew = lireFichierPoints("ptsPoly_top10_gen"+ str(nbGen-1) +".txt", taillePop)
+qPolyNew = lireFichierQualite("qualPoly_top10_gen"+ str(nbGen-1) +".txt")
+ptsCercleNew = lireFichierPoints("ptsCercle_top10_gen"+ str(nbGen-1) +".txt", taillePop)
+qCercleNew = lireFichierQualite("qualCercle_top10_gen"+ str(nbGen-1) +".txt")
 
 afficherMaillage(ptsPolyOld[0])
 print "Qualité meilleur poly gen 0 : ",qPolyOld[0]
@@ -553,6 +566,6 @@ afficherMaillage(ptsCercleOld[0])
 print "Qualité meilleur cercle gen 0 : ",qCercleOld[0]
 
 afficherMaillage(ptsPolyNew[0])
-print "Qualité meilleur poly gen 99 : ",qPolyNew[0]
+print "Qualité meilleur poly gen "+ str(nbGen-1) +" : ",qPolyNew[0]
 afficherMaillage(ptsCercleNew[0])
-print "Qualité meilleur cercle gen 99 : ",qCercleNew[0]
+print "Qualité meilleur cercle gen "+ str(nbGen-1) +" : ",qCercleNew[0]
