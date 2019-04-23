@@ -7,6 +7,7 @@
 ###############################################################################
 
 import matplotlib.pyplot as plt       # voir/tracer les figures
+import matplotlib.colors              # colorer les triangles
 import numpy as np                    # manipuler les tableaux de points
 import random                         # générer les points dans les figures
 from scipy.spatial import Delaunay    # générer les maillages
@@ -263,14 +264,8 @@ def qualiteMaillage(triangles, points):
     minQual = min(minQual, qualTri)
 
   qualGlobale = sommeQualite / len(triangles)
-  return (qualGlobale + minQual) / 2
-  """
-  minQual = 1.0
-  for triangle in triangles:
-    minQual = min(qualiteTriangle(points[triangle[0]], points[triangle[1]], points[triangle[2]]), minQual)
 
-  return minQual
-  """
+  return (qualGlobale + minQual) / 2
 
 """
 ###############################################################################
@@ -387,23 +382,37 @@ class Maillage(object):
     ## Méthodes ##
     # Ecrit les points du maillage dans un fichier .txt
     def ecrireFichierPoints(self, fichier):
-	w=0
-	while w<len(self.points):
-		temp0 = str(self.points[w][0])
-		temp1 = str(self.points[w][1])
-		point = "["+temp0+","+temp1+"]\n"
-		fichier.write(point)
-		w=w+1
+      w=0
+      while w<len(self.points):
+        temp0 = str(self.points[w][0])
+        temp1 = str(self.points[w][1])
+        point = "["+temp0+","+temp1+"]\n"
+        fichier.write(point)
+        w=w+1
         
     # Ecrit la qualité du maillage dans un fichier .txt
     def ecrireFichierQualite(self, fichier):
         fichier.write(str(self.qualite)+'\n')
+
         
 ###############################################################################
 # METHODES
 ###############################################################################
 
-    
+# Mise à jour de la fonction pour colorer les triangles selon leur qualité
+def afficherMaillageC(points):
+  #Code pour le afficherMaillage
+  tri = Delaunay(points)
+  colors = np.array([
+      qualiteTriangle(points[t[0]],points[t[1]],points[t[2]])
+    for t in tri.simplices
+  ])
+  cnames = plt.cm.RdYlGn_r(np.linspace(0.10, 0.90, 10000))
+  cmap = matplotlib.colors.ListedColormap(cnames)
+  plt.tripcolor(points[:,0], points[:,1], tri.simplices.copy(), facecolors=colors, edgecolors='k', cmap=cmap)
+  plt.plot(points[:,0], points[:,1], '.')
+  plt.show()
+  
 # Lit un fichier .txt contenant des points et les met dans un np.array
 # On utilisera cette fonction pour exploiter les résultats
 def lireFichierPoints(filename, taillePop):
@@ -560,12 +569,16 @@ qPolyNew = lireFichierQualite("qualPoly_top10_gen"+ str(nbGen-1) +".txt")
 ptsCercleNew = lireFichierPoints("ptsCercle_top10_gen"+ str(nbGen-1) +".txt", taillePop)
 qCercleNew = lireFichierQualite("qualCercle_top10_gen"+ str(nbGen-1) +".txt")
 
-afficherMaillage(ptsPolyOld[0])
+#afficherMaillage(ptsPolyOld[0])
+afficherMaillageC(ptsPolyOld[0])
 print "Qualité meilleur poly gen 0 : ",qPolyOld[0]
-afficherMaillage(ptsCercleOld[0])
+#afficherMaillage(ptsCercleOld[0])
+afficherMaillageC(ptsCercleOld[0])
 print "Qualité meilleur cercle gen 0 : ",qCercleOld[0]
 
-afficherMaillage(ptsPolyNew[0])
+#afficherMaillage(ptsPolyNew[0])
+afficherMaillageC(ptsPolyNew[0])
 print "Qualité meilleur poly gen "+ str(nbGen-1) +" : ",qPolyNew[0]
-afficherMaillage(ptsCercleNew[0])
+#afficherMaillage(ptsCercleNew[0])
+afficherMaillageC(ptsCercleNew[0])
 print "Qualité meilleur cercle gen "+ str(nbGen-1) +" : ",qCercleNew[0]
