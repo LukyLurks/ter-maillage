@@ -482,21 +482,21 @@ print testQualite[2]
 
 ## Algorithme ##
 # Nombre de générations
-nbGen = 150
+nbGen = 5000
 # Taille de la population par figure
 taillePop = 10
 
 ## Figures ##
 # Polygone
-ptsParCote = 5
-ptsDansPoly = 20
+ptsParCote = 4
+ptsDansPoly = 6
 sommets = np.array([[-20.0, -10.0], [-30.0, 40.0],[-10.0,60.0],[50.0, 10.0],[30.0, -15.0]])
 #sommets = np.array([[-15.0, -10.0], [-15.0, 10.0],[15.0,10.0],[15.0, -10.0]])
 ptsParPoly = ptsParCote * len(sommets) + ptsDansPoly
 
 # Cercle
-resQuart = 7
-ptsDansCercle = 18
+resQuart = 6
+ptsDansCercle = 6
 ptsParCercle = 4 * resQuart + ptsDansCercle
 
 
